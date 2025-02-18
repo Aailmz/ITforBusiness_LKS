@@ -3,4 +3,6 @@ class ApiConfig {
   static String get loginUrl => '$baseUrl/auth/login';
   static String get registerUrl => '$baseUrl/auth/register';
   static String get productsUrl => '$baseUrl/produk';
+  static String get transactionUrl => '$baseUrl/transaction';
+  static String getTransactionByCode(String code) => '$baseUrl/transaction/$code';
 }

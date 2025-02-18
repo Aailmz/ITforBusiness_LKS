@@ -3,6 +3,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'model/productmodel.dart';
 import 'config/config.dart';
+import 'provider/invoiceprovider.dart';
+import 'package:provider/provider.dart';
+import 'invoicepage.dart';
 
 class ProductPage extends StatefulWidget {
   const ProductPage({super.key});
@@ -20,6 +23,29 @@ class _ProductPageState extends State<ProductPage> {
   void initState() {
     super.initState();
     fetchProducts();
+  }
+
+  void _addToCart(Product product) {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    cart.addItem(
+      product.kodeBarang,
+      product.namaBarang,
+      product.hargaSatuan,
+      product.satuan,
+    );
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Item added to cart'),
+        duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: 'UNDO',
+          onPressed: () {
+            cart.removeItem(product.kodeBarang);
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> fetchProducts() async {
@@ -147,9 +173,7 @@ class _ProductPageState extends State<ProductPage> {
                                 trailing: IconButton(
                                   icon: const Icon(Icons.add_shopping_cart),
                                   color: Colors.blue,
-                                  onPressed: () {
-                                    // Add to cart functionality here
-                                  },
+                                  onPressed: () => _addToCart(product),
                                 ),
                               ),
                             );
@@ -188,7 +212,10 @@ class _ProductPageState extends State<ProductPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Navigate to invoice page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const InvoicePage()),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
