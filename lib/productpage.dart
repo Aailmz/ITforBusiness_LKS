@@ -63,12 +63,9 @@ class _ProductPageState extends State<ProductPage> {
         final dynamic jsonResponse = json.decode(response.body);
         final List<dynamic> data;
         
-        // Handle both object with data property and direct array response
         if (jsonResponse is Map) {
-          // If response is an object, try to get the data array from it
           data = jsonResponse['data'] as List<dynamic>? ?? [];
         } else if (jsonResponse is List) {
-          // If response is already a list, use it directly
           data = jsonResponse;
         } else {
           throw Exception('Unexpected response format');
@@ -77,6 +74,7 @@ class _ProductPageState extends State<ProductPage> {
         setState(() {
           products = data.map((json) => Product.fromJson(json)).toList();
           isLoading = false;
+          error = null; // Clear any previous errors
         });
       } else {
         setState(() {
@@ -90,6 +88,14 @@ class _ProductPageState extends State<ProductPage> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> _handleRefresh() async {
+    setState(() {
+      isLoading = true;
+      error = null;
+    });
+    await fetchProducts();
   }
 
   @override
@@ -135,50 +141,53 @@ class _ProductPageState extends State<ProductPage> {
         body: Column(
           children: [
             Expanded(
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : error != null
-                      ? Center(child: Text(error!))
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: products.length,
-                          itemBuilder: (context, index) {
-                            final product = products[index];
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              child: ListTile(
-                                leading: Container(
-                                  width: 50,
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue[100],
-                                    borderRadius: BorderRadius.circular(8),
+              child: RefreshIndicator(
+                onRefresh: _handleRefresh,
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : error != null
+                        ? Center(child: Text(error!))
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: products.length,
+                            itemBuilder: (context, index) {
+                              final product = products[index];
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                child: ListTile(
+                                  leading: Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue[100],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.inventory_2,
+                                      color: Colors.blue,
+                                    ),
                                   ),
-                                  child: const Icon(
-                                    Icons.inventory_2,
+                                  title: Text(
+                                    product.namaBarang,
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Rp ${product.hargaSatuan.toStringAsFixed(0)}'),
+                                      Text('Stok: ${product.jumlahBarang} ${product.satuan}'),
+                                    ],
+                                  ),
+                                  trailing: IconButton(
+                                    icon: const Icon(Icons.add_shopping_cart),
                                     color: Colors.blue,
+                                    onPressed: () => _addToCart(product),
                                   ),
                                 ),
-                                title: Text(
-                                  product.namaBarang,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Rp ${product.hargaSatuan.toStringAsFixed(0)}'),
-                                    Text('Stok: ${product.jumlahBarang} ${product.satuan}'),
-                                  ],
-                                ),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.add_shopping_cart),
-                                  color: Colors.blue,
-                                  onPressed: () => _addToCart(product),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                              );
+                            },
+                          ),
+              ),
             ),
             Container(
               padding: const EdgeInsets.all(16),
