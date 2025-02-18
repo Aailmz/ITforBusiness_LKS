@@ -201,9 +201,11 @@ class _ProductPageState extends State<ProductPage> {
                         'Total Belanja:',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      const Text(
-                        'Rp. 0',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Consumer<CartProvider>(
+                        builder: (context, cart, child) => Text(
+                          'Rp. ${cart.totalAmount.toStringAsFixed(0)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ],
                   ),
